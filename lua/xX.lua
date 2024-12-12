@@ -1,16 +1,25 @@
--- fix x and X key when "virtualedit=all"
--- fuck the fucking chaos index of row and col
--- fuck lua for 1-based index
+-- when `virtualedit=all`, use x and X key to delete tab char
 
 xX = {}
 
-xX.fun = function(direction)
+xX.setup = function(config)
+	xX.config = vim.tbl_deep_extend("force", xX.config, config or {})
+	vim.keymap.set("n", xX.config.x, function() return xX.map_expr(true) end, {expr = true})
+	vim.keymap.set("n", xX.config.X, function() return xX.map_expr(false) end, {expr = true})
+end
+
+xX.config = {
+	x = "x",
+	X = "X",
+}
+
+xX.map_expr = function(direction)
+	vim.o.operatorfunc = "v:lua.xX.callback"
 	xX.direction = direction
-	vim.go.operatorfunc = "v:lua.xX.fun_callback"
 	return "g@l"
 end
 
-xX.fun_callback = function()
+xX.callback = function()
 	-- local pos1 = vim.api.nvim_win_get_cursor(0)
 	-- local row1 = pos1[1]
 	-- local col1 = pos1[2]
@@ -60,3 +69,5 @@ xX.fun_callback = function()
 
 	vim.api.nvim_buf_set_text(0, row_beg - 1, col_byte_beg - 1, row_end - 1, col_byte_end - 1, {})
 end
+
+return xX
